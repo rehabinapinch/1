@@ -3829,45 +3829,40 @@ function getDifficultyClass(id) {
 }
 
 function findAndAddImage(code, autoAdd = false) {
-    // 1. Clean the code
-    const base = code.replace(/\.(png|jpg|jpeg|webp)$/i, '').trim();
+    // 1. Clean filename (removes .png if it's already there)
+    const filename = code.replace(/\.(png|jpg|jpeg|webp)$/i, '').trim();
     
-    // 2. BodyApp/GitHub file naming
-    // If your files in the /images folder are named "L1-6.jpg", keep this.
-    // If they are named "L1.6.jpg", remove the .replace line.
-    const filename = base.replace(/\./g, '-'); 
+    // 2. DEFINE THE REPOSITORY PATH
+    // This ensures GitHub Pages looks inside /PocketPhysio/ instead of the root
+    const repoPath = '/PocketPhysio/images/';
     
-    // 3. RELATIVE LINK (Points to your 'images' folder in the repo)
-    const finalUrl = `images/${filename}.jpg`;
-
     const img = new Image();
-    img.src = finalUrl;
+    
+    // 3. Try PNG first (Relative to your repo)
+    img.src = repoPath + filename + '.png';
     
     img.onload = () => {
         if (autoAdd && selectedImages.length < 3) {
-            if (!selectedImages.includes(finalUrl)) {
-                selectedImages.push(finalUrl);
+            if (!selectedImages.includes(img.src)) {
+                selectedImages.push(img.src);
                 updateTray();
             }
         }
     };
     
-    // Optional: Handle if the image isn't found
+    // 4. Fallback: If PNG is missing, try JPG
     img.onerror = () => {
-        console.error("Could not find image:", finalUrl);
-    };
-}
-    
-    img.onerror = () => {
-        console.error("Image failed to load from BodyApp: " + finalUrl);
-        // Fallback: Try JPG if PNG fails
         if (img.src.endsWith('.png')) {
-            img.src = finalUrl.replace('.png', '.jpg');
+            console.log("Trying JPG fallback for: " + filename);
+            img.src = repoPath + filename + '.jpg';
+        } else {
+            console.error("Image not found in GitHub Repo:", filename);
         }
     };
-    
+
     return img;
 }
+
 function renderImageGrid(item) {
     const grid = document.getElementById('view-images');
     grid.innerHTML = '';
@@ -3877,22 +3872,17 @@ function renderImageGrid(item) {
         codes.forEach(code => {
             const card = document.createElement('div');
             
-            // Add border color based on difficulty number
-            const num = parseFloat(code.match(/\d+/)?.[0] || 0);
-            let diffClass = '';
-            if(num < 4) diffClass = 'diff-easy';
-            else if(num < 8) diffClass = 'diff-med';
-            else diffClass = 'diff-hard';
+            // Difficulty styling
+            const numMatch = code.match(/\d+/);
+            const num = numMatch ? parseFloat(numMatch[0]) : 0;
+            let diffClass = num < 4 ? 'diff-easy' : (num < 8 ? 'diff-med' : 'diff-hard');
             
             card.className = 'img-card ' + diffClass;
             
-            // Use the Master Finder we just added
-            // "false" means don't auto-add to tray, just find the URL
+            // Get the image object
             const img = findAndAddImage(code, false);
             
-            // Allow manual clicking
             card.onclick = () => toggleSelection(img.src, card);
-            
             card.appendChild(img);
             grid.appendChild(card);
         });
