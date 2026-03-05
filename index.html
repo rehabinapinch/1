@@ -3829,28 +3829,34 @@ function getDifficultyClass(id) {
 }
 
 function findAndAddImage(code, autoAdd = false) {
-    // 1. Clean the code (remove .png, extra spaces, etc.)
+    // 1. Clean the code
     const base = code.replace(/\.(png|jpg|jpeg|webp)$/i, '').trim();
     
-    // 2. BodyApp server expects dots replaced with hyphens (e.g., L1.6 -> L1-6)
+    // 2. BodyApp/GitHub file naming
+    // If your files in the /images folder are named "L1-6.jpg", keep this.
+    // If they are named "L1.6.jpg", remove the .replace line.
     const filename = base.replace(/\./g, '-'); 
     
-    // 3. Direct link to the BodyApp image repository
-    const finalUrl = `https://bodya1.tiiny.site/${filename}.jpg`;
+    // 3. RELATIVE LINK (Points to your 'images' folder in the repo)
+    const finalUrl = `images/${filename}.jpg`;
 
     const img = new Image();
     img.src = finalUrl;
     
-    // This part handles the "Presets" and auto-loading logic
     img.onload = () => {
         if (autoAdd && selectedImages.length < 3) {
-            // Check if it's already in the tray to avoid duplicates
             if (!selectedImages.includes(finalUrl)) {
                 selectedImages.push(finalUrl);
                 updateTray();
             }
         }
     };
+    
+    // Optional: Handle if the image isn't found
+    img.onerror = () => {
+        console.error("Could not find image:", finalUrl);
+    };
+}
     
     img.onerror = () => {
         console.error("Image failed to load from BodyApp: " + finalUrl);
