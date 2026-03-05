@@ -526,22 +526,21 @@ textarea {
     <div id="tray-slots">
         </div>
 
-    <div id="tray-empty-state" class="tray-placeholder">
-        <h3>Build a Routine</h3>
-        <p>Select exercises from the library to build a printable handout.</p>
-        
-        <div class="placeholder-grid">
-            <img src="https://bodya1.tiiny.site/N1.jpg" alt="Neck">
-            <img src="https://bodya1.tiiny.site/S1.jpg" alt="Shoulder">
-            <img src="https://bodya1.tiiny.site/L1.jpg" alt="Back">
-            <img src="https://bodya1.tiiny.site/LH1-5.jpg" alt="Hip">
-            <img src="https://bodya1.tiiny.site/KE1.jpg" alt="Knee">
-            <img src="https://bodya1.tiiny.site/A1.jpg" alt="Ankle">
-            <img src="https://bodya1.tiiny.site/E1-0.jpg" alt="Elbow">
-            <img src="https://bodya1.tiiny.site/W1.jpg" alt="Wrist">
-        </div>
+<div id="tray-empty-state" class="tray-placeholder">
+    <h3>Build a Routine</h3>
+    <p>Select exercises from the library to build a printable handout.</p>
+    
+    <div class="placeholder-grid">
+        <img src="images/N1.png" alt="Neck" onerror="this.src='images/N1.jpg'">
+        <img src="images/S1.png" alt="Shoulder" onerror="this.src='images/S1.jpg'">
+        <img src="images/L1.png" alt="Back" onerror="this.src='images/L1.jpg'">
+        <img src="images/LH1.5.png" alt="Hip" onerror="this.src='images/LH1.5.jpg'">
+        <img src="images/KE1.png" alt="Knee" onerror="this.src='images/KE1.jpg'">
+        <img src="images/A1.png" alt="Ankle" onerror="this.src='images/A1.jpg'">
+        <img src="images/E1.0.png" alt="Elbow" onerror="this.src='images/E1.0.jpg'">
+        <img src="images/W1.png" alt="Wrist" onerror="this.src='images/W1.jpg'">
     </div>
-
+</div>
     <div class="action-area">
         <button class="print-action-btn" onclick="prepareAndPrint()">Print Handout 🖨️</button>
     </div>
@@ -3685,7 +3684,7 @@ const exerciseDescriptions = {
 // CORE LOGIC
 // ----------------------------------------------------
 // 1. GLOBAL STATE & CONSTANTS
-const baseUrl = "https://bodya1.tiiny.site/"; 
+const baseUrl = "images/"; // Pointing directly to your GitHub folder
 let selectedImages = [];
 let activeItem = null;
 let groupedData = {};
@@ -3928,9 +3927,8 @@ function loadPreset(region) {
     const printContainer = document.getElementById('print-images-container');
     printContainer.innerHTML = '';
 
-    // 3. Loop through the IDs in the set
+// 3. Loop through the IDs in the set
     sets[region].forEach(id => {
-        // Find the details (LibraryData or Fallback)
         let info = libraryData.find(item => item.id === id);
         
         if (!info && typeof exerciseDescriptions !== 'undefined' && exerciseDescriptions[id]) {
@@ -3941,22 +3939,21 @@ function loadPreset(region) {
             info = { t: "Exercise " + id, d: "Perform as instructed." };
         }
 
-        // --- HYBRID LOGIC START ---
-        const filename = id.replace(/\./g, '-'); 
+        // --- GITHUB REPOSITORY LOGIC ---
+        // We keep the dots (e.g., A1.1) because that's how they are on GitHub
+        const filename = id.trim(); 
         
-        // 1. Primary: Cloud JPG
-        const imgUrl = `https://bodya1.tiiny.site/${filename}.jpg`; 
-        
-        // 2. Fallback: Local JPG (The most robust backup for firewalls)
-        const localUrl = `images/${filename}.jpg`;
+        // Path to your GitHub images folder
+        const mainUrl = `images/${filename}.png`;
+        const fallbackUrl = `images/${filename}.jpg`;
 
         const row = document.createElement('div');
         row.className = 'print-row';
         
-        // UPDATE HERE: If Cloud fails, switch immediately to Local
+        // If the .png fails to load, it immediately swaps to the .jpg version
         row.innerHTML = `
             <div class="print-col-img">
-                <img src="${imgUrl}" onerror="this.onerror=null; this.src='${localUrl}';">
+                <img src="${mainUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}';">
             </div>
             <div class="print-col-text">
                 <h4>${info.t}</h4>
